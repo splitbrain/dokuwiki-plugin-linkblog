@@ -110,10 +110,10 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
 
         $values = array($name, $feedurl, (int) $useReadability, (int) $useContent, (int) $isEnabled);
         if($id) {
-            $values = array_unshift($values, $id);
-            $sql    = "REPLACE INTO sources (id, name, feed, usereadability, usecontent) VALUES (?,?,?,?,?,?)";
+            array_unshift($values, $id);
+            $sql    = "REPLACE INTO sources (id, name, feed, usereadability, usecontent, enabled) VALUES (?,?,?,?,?,?)";
         } else {
-            $sql = "INSERT INTO sources (name, feed, usereadability, usecontent) VALUES (?,?,?,?,?)";
+            $sql = "INSERT INTO sources (name, feed, usereadability, usecontent, enabled) VALUES (?,?,?,?,?)";
         }
 
         $sqlite->query($sql, $values);
