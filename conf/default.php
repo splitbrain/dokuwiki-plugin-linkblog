@@ -5,4 +5,6 @@
  * @author Andreas Gohr <andi@splitbrain.org>
  */
 
-$conf['unshortenapikey']    = '';
+$conf['unshortenapikey'] = '';
+$conf['feedtitle']       = 'Linkblog';
+$conf['limit']           = 50;

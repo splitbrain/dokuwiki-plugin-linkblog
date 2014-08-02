@@ -67,7 +67,7 @@ class syntax_plugin_linkblog extends DokuWiki_Syntax_Plugin {
         /** @var helper_plugin_linkblog $hlp */
         $hlp = plugin_load('helper', 'linkblog');
 
-        $items = $hlp->getItems(50);
+        $items = $hlp->getItems($this->getConf('limit'));
 
         foreach($items as $item) {
             $renderer->doc .= $hlp->formatItem($item);

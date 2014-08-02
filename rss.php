@@ -8,9 +8,10 @@ require_once(DOKU_INC.'inc/init.php');
 /** @var helper_plugin_linkblog $hlp */
 $hlp = plugin_load('helper', 'linkblog');
 
-$items = $hlp->getItems();
+$items = $hlp->getItems($hlp->getConf('limit'));
 
 $feed = new DokuWikiFeedCreator();
+$feed->title = $hlp->getConf('feedtitle');
 foreach($items as $item) {
     $fitem              = new FeedItem();
     $fitem->link        = $item['url'];
