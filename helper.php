@@ -66,6 +66,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
         $html .= '<img src="'.$ico.'" width="16" height="16" alt="" />';
         $html .= hsc($item['title']);
         $html .= '</a>';
+        $html .= ' <span>'.date('Y-m-d', $item['published']).'</span>';
         if($item['usecontent']){
             $content = trim(strip_tags($item['description']));
             if($content) {
