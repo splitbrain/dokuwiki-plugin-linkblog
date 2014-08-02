@@ -55,6 +55,28 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
         return $data;
     }
 
+
+    public function formatItem($item) {
+
+        $urlparts = parse_url($item['url']);
+        $ico = 'http://'.$urlparts['host'][0].'.getfavicon.appspot.com/'.rawurlencode($urlparts['scheme'].'://'.$urlparts['host']);
+
+        $html  = '<div class="linkblog linkblog-'.$item['src'].'">';
+        $html .= '<a href="'.$item['url'].'">';
+        $html .= '<img src="'.$ico.'" width="16" height="16" alt="" /> ';
+        $html .= hsc($item['title']);
+        $html .= '</a>';
+        if($item['usecontent']){
+            $content = trim(strip_tags($item['description']));
+            if($content) {
+                $html .= '<blockquote>'.hsc($content).'</blockquote>';
+            }
+        }
+        $html .= '</div>';
+
+        return $html;
+    }
+
     /**
      * Get a list of feed items, optionally filtered
      *
@@ -81,7 +103,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
         $values[] = $max;
 
 
-        $sql = "SELECT title, url, description, content, published, name as source
+        $sql = "SELECT title, url, description, content, published, name as source, usecontent
                   FROM items A, sources B
                  WHERE A.src = B.ID
                        $where
@@ -142,28 +164,41 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
         $sqlite->res_close($res);
         if($found) return false;
 
+        $http    = new DokuHTTPClient();
+        // unshorten the URL for storage
+        if($this->getConf('unshortenapikey')) {
+            $fullurl = $http->get('http://api.unshorten.it?shortURL='.rawurlencode($url).'&apiKey='.$this->getConf('unshortenapikey'));
+            if(!$fullurl) $fullurl = $url;
+            if(strtolower(substr($fullurl,0,4)) != 'http') $fullurl = $url;
+        }else {
+            $fullurl = $url;
+        }
+
         $content = '';
         if($useReadbility) {
             // fetch the article's content through readabilities filter
-            $readability = 'http://www.readability.com/m?url='.rawurldecode($url);
+            $readability = 'http://www.readability.com/m?url='.rawurldecode($fullurl);
 
-            $http    = new DokuHTTPClient();
             $content = $http->get($readability);
             if(preg_match('/(<section id="rdb-article-content" dir="ltr">)(.*?)(<\/section)/s', $content, $m)) {
                 $content = $m[2];
             } else {
                 $content = '';
             }
-        }
 
-        if($useContent) {
-            $prefix = $item->get_content();
-            if($content) {
-                $prefix = '<blockquote>'.$prefix.'<hr></blockquote>';
+            if($useContent) {
+                $prefix = $item->get_content();
+                if($content) {
+                    $prefix = '<blockquote>'.$prefix.'<hr></blockquote>';
+                }
+
+                $content = $prefix.$content;
             }
-
-            $content = $prefix.$content;
+        }else {
+            $content = $item->get_content();
         }
+
+
 
         $sql = "INSERT INTO items (id, src, published, fetched, title, url, description, content)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -174,7 +209,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
             $item->get_date('U'),
             time(),
             $item->get_title(),
-            $url,
+            $fullurl,
             $item->get_content(),
             $content
         );

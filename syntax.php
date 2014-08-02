@@ -14,19 +14,19 @@ class syntax_plugin_linkblog extends DokuWiki_Syntax_Plugin {
      * @return string Syntax mode type
      */
     public function getType() {
-        return 'FIXME: container|baseonly|formatting|substition|protected|disabled|paragraphs';
+        return 'substition';
     }
     /**
      * @return string Paragraph type
      */
     public function getPType() {
-        return 'FIXME: normal|block|stack';
+        return 'block';
     }
     /**
      * @return int Sort order - Low numbers go before high numbers
      */
     public function getSort() {
-        return FIXME;
+        return 400;
     }
 
     /**
@@ -35,13 +35,8 @@ class syntax_plugin_linkblog extends DokuWiki_Syntax_Plugin {
      * @param string $mode Parser mode
      */
     public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('<FIXME>',$mode,'plugin_linkblog');
-//        $this->Lexer->addEntryPattern('<FIXME>',$mode,'plugin_linkblog');
+        $this->Lexer->addSpecialPattern('~~linkblog~~', $mode, 'plugin_linkblog');
     }
-
-//    public function postConnect() {
-//        $this->Lexer->addExitPattern('</FIXME>','plugin_linkblog');
-//    }
 
     /**
      * Handle matches of the linkblog syntax
@@ -68,6 +63,15 @@ class syntax_plugin_linkblog extends DokuWiki_Syntax_Plugin {
      */
     public function render($mode, Doku_Renderer &$renderer, $data) {
         if($mode != 'xhtml') return false;
+
+        /** @var helper_plugin_linkblog $hlp */
+        $hlp = plugin_load('helper', 'linkblog');
+
+        $items = $hlp->getItems(50);
+
+        foreach($items as $item) {
+            $renderer->doc .= $hlp->formatItem($item);
+        }
 
         return true;
     }
