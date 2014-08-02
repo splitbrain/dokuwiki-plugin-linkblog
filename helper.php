@@ -81,24 +81,24 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      * Get a list of feed items, optionally filtered
      *
      * @param int $max    number of items maximum
-     * @param int $newest newest allowed item
-     * @param int $oldest oldest allowed item
+     * @param int $newerthan newest allowed item
+     * @param int $olderthan oldest allowed item
      * @return array
      */
-    public function getItems($max=20, $newest=0, $oldest=0) {
+    public function getItems($max=20, $newerthan=0, $olderthan=0) {
         $sqlite = $this->getDB();
         if(!$sqlite) return array();
 
 
         $values = array();
         $where = '';
-        if($newest){
-            $where .= ' AND published < ?';
-            $values[] = $newest;
-        }
-        if($oldest){
+        if($newerthan){
             $where .= ' AND published >= ?';
-            $values[] = $oldest;
+            $values[] = $newerthan;
+        }
+        if($olderthan){
+            $where .= ' AND published < ?';
+            $values[] = $olderthan;
         }
         $values[] = $max;
 
