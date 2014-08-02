@@ -8,7 +8,7 @@ require_once(DOKU_INC.'inc/init.php');
 /** @var helper_plugin_linkblog $hlp */
 $hlp = plugin_load('helper', 'linkblog');
 
-$items = $hlp->getItems($hlp->getConf('limit'));
+$items = $hlp->getItems(5);
 
 $feed = new DokuWikiFeedCreator();
 $feed->title = $hlp->getConf('feedtitle');
@@ -22,5 +22,5 @@ foreach($items as $item) {
     $feed->addItem($fitem);
 }
 
-header('Content-Type: application/atom+xml');
-echo $feed->createFeed('ATOM1.0','utf-8');
+header('Content-Type: text/xml');
+echo $feed->createFeed('RSS2.0','utf-8');
