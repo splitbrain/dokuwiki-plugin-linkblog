@@ -1,7 +1,7 @@
 base   linkblog
 author Andreas Gohr
 email  andi@splitbrain.org
-date   2014-08-01
+date   2015-10-16
 name   linkblog plugin
 desc   Collect links from RSS sources and display them as Link Blog
 url    http://www.dokuwiki.org/plugin:linkblog
