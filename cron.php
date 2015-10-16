@@ -42,7 +42,7 @@ class LinkblogCron extends DokuCLI {
             foreach($rss->get_items() as $item) {
                 /** @var $item SimplePie_Item */
 
-                if($hlp->storeArticle($item, $feed['id'], $feed['usereadability'], $feed['usecontent'])) {
+                if($hlp->storeArticle($item, $feed)) {
                     $this->success($item->get_permalink());
                 }
 

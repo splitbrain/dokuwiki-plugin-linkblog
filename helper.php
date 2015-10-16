@@ -119,24 +119,29 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
     }
 
     /**
-     * @param int    $id set 0 for adding a new feed
-     * @param string $name
-     * @param string $feedurl
-     * @param bool   $useReadability
-     * @param bool   $useContent
-     * @param bool   $isEnabled
+     * @param int $id set 0 for adding a new feed
+     * @param array $feed feed data
      * @return bool
      */
-    public function editFeed($id, $name, $feedurl, $useReadability, $useContent, $isEnabled) {
+    public function editFeed($id, $feed) {
         $sqlite = $this->getDB();
         if(!$sqlite) return false;
 
-        $values = array($name, $feedurl, (int) $useReadability, (int) $useContent, (int) $isEnabled);
+        $values = array();
+        $values[] = $feed['name'];
+        $values[] = $feed['feed'];
+        $values[] = (int) $feed['usereadability'];
+        $values[] = (int) $feed['usecontent'];
+        $values[] = (int) $feed['enabled'];
+        $values[] = $feed['filter'];
+        $values[] = $feed['repl'];
+        $values[] = $feed['with'];
+
         if($id) {
             array_unshift($values, $id);
-            $sql    = "REPLACE INTO sources (id, name, feed, usereadability, usecontent, enabled) VALUES (?,?,?,?,?,?)";
+            $sql    = "REPLACE INTO sources (id, name, feed, usereadability, usecontent, enabled, filter, repl, with) VALUES (?,?,?,?,?,?,?,?,?)";
         } else {
-            $sql = "INSERT INTO sources (name, feed, usereadability, usecontent, enabled) VALUES (?,?,?,?,?)";
+            $sql = "INSERT INTO sources (name, feed, usereadability, usecontent, enabled, filter, repl, with) VALUES (?,?,?,?,?,?,?,?)";
         }
 
         $sqlite->query($sql, $values);
@@ -147,14 +152,17 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      * Save an article
      *
      * @param SimplePie_Item $item
-     * @param int            $src
-     * @param bool           $useReadbility
-     * @param bool           $useContent
+     * @param array $feed The feed options
      * @return bool
      */
-    public function storeArticle(SimplePie_Item $item, $src, $useReadbility = true, $useContent = true) {
+    public function storeArticle(SimplePie_Item $item, $feed) {
         $sqlite = $this->getDB();
         if(!$sqlite) return false;
+
+        // check if this should be filtered out
+        $title = $item->get_title();
+        if($feed['filter'] && !preg_match('/'.$feed['filter'].'/', $title)) return false;
+
 
         $url = $item->get_permalink();
 
@@ -175,8 +183,11 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
             $fullurl = $url;
         }
 
+        // adjust title
+        if($feed['repl']) $title = preg_replace('/'.$feed['repl'].'/', $feed['with'], $title);
+
         $content = '';
-        if($useReadbility) {
+        if($feed['usereadbility']) {
             // fetch the article's content through readabilities filter
             $readability = 'http://www.readability.com/m?url='.rawurldecode($fullurl);
 
@@ -187,7 +198,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
                 $content = '';
             }
 
-            if($useContent) {
+            if($feed['usecontent']) {
                 $prefix = $item->get_content();
                 if($content) {
                     $prefix = '<blockquote>'.$prefix.'<hr></blockquote>';
@@ -199,17 +210,15 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
             $content = $item->get_content();
         }
 
-
-
         $sql = "INSERT INTO items (id, src, published, fetched, title, url, description, content)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $sqlite->query(
             $sql,
             md5($url),
-            $src,
+            $feed['id'],
             $item->get_date('U'),
             time(),
-            $item->get_title(),
+            $title,
             $fullurl,
             $item->get_content(),
             $content

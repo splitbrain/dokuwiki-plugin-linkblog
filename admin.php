@@ -11,11 +11,7 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
             if($feed['name']) {
                 $hlp->editFeed(
                     $fid,
-                    $feed['name'],
-                    $feed['feed'],
-                    $feed['usereadability'],
-                    $feed['usecontent'],
-                    $feed['enabled']
+                    $feed
                 );
             }
         }
@@ -32,7 +28,10 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
             'feed'           => '',
             'usereadability' => 1,
             'usecontent'     => 1,
-            'enabled'        => 1
+            'enabled'        => 1,
+            'filter'         => '',
+            'repl'           => '',
+            'with'           => '',
         );
 
         $form = new Doku_Form(array());
@@ -76,6 +75,15 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
                 $check = array();
             }
             $form->addElement(form_makeCheckboxField('feed['.$feed['id'].'][enabled]', 1, 'Enabled', '', '', $check));
+
+            $form->addElement('<br />');
+            $form->addElement(form_makeField('text', 'feed['.$feed['id'].'][filter]', $feed['filter'], 'Filter'));
+
+            $form->addElement('<br />');
+            $form->addElement(form_makeField('text', 'feed['.$feed['id'].'][repl]', $feed['repl'], 'Replace'));
+            $form->addElement('<br />');
+            $form->addElement(form_makeField('text', 'feed['.$feed['id'].'][with]', $feed['with'], 'with'));
+
             $form->addElement('</td>');
 
             $form->addElement('</tr>');
@@ -84,6 +92,19 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
         $form->addElement('</table>');
         $form->addElement(form_makeButton('submit', 'admin', 'Save'));
         $form->printForm();
+
+        $this->lastentries();
     }
 
+
+    protected function lastentries() {
+        /** @var helper_plugin_linkblog $hlp */
+        $hlp = plugin_load('helper', 'linkblog');
+
+        $items = $hlp->getItems($this->getConf('limit'));
+        foreach($items as $item) {
+            echo $hlp->formatItem($item);
+        }
+
+    }
 }
