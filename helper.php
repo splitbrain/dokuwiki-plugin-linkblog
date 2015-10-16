@@ -59,7 +59,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
     public function formatItem($item) {
 
         $urlparts = parse_url($item['url']);
-        $ico = 'http://'.$urlparts['host'][0].'.getfavicon.appspot.com/'.rawurlencode($urlparts['scheme'].'://'.$urlparts['host']);
+        $ico = 'https://www.google.com/s2/u/0/favicons?domain='.$urlparts['host'];
 
         $html  = '<div class="plugin-linkblog">';
         $html .= '<a href="'.$item['url'].'">';
