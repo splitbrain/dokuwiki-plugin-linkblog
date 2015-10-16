@@ -6,5 +6,5 @@
  */
 
 $conf['unshortenapikey'] = '';
-$conf['feedtitle']       = 'Linkblog';
-$conf['limit']           = 50;
+$conf['feedtitle'] = 'Linkblog';
+$conf['limit'] = 50;

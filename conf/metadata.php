@@ -6,6 +6,6 @@
  */
 
 $meta['unshortenapikey'] = array('string');
-$meta['feedtitle']       = array('string');
-$meta['limit']           = array('numeric');
+$meta['feedtitle'] = array('string');
+$meta['limit'] = array('numeric');
 

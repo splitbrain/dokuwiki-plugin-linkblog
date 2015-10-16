@@ -1,8 +1,8 @@
 #!/usr/bin/php
 <?php
-if(!defined('DOKU_INC')) define('DOKU_INC', realpath(dirname(__FILE__).'/../../../').'/');
+if(!defined('DOKU_INC')) define('DOKU_INC', realpath(dirname(__FILE__) . '/../../../') . '/');
 define('NOSESSION', 1);
-require_once(DOKU_INC.'inc/init.php');
+require_once(DOKU_INC . 'inc/init.php');
 
 class LinkblogCron extends DokuCLI {
 
@@ -32,7 +32,7 @@ class LinkblogCron extends DokuCLI {
 
         $feeds = $hlp->loadFeeds(true);
         foreach($feeds as $feed) {
-            $this->info('Checking '.$feed['name']);
+            $this->info('Checking ' . $feed['name']);
 
             $rss = new FeedParser();
             $rss->set_feed_url($feed['feed']);
@@ -51,7 +51,6 @@ class LinkblogCron extends DokuCLI {
             }
         }
     }
-
 
 }
 

@@ -29,7 +29,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
             return null;
         }
 
-        if(!$sqlite->init('linkblog', __DIR__.'/db')) {
+        if(!$sqlite->init('linkblog', __DIR__ . '/db')) {
             return null;
         }
 
@@ -47,30 +47,44 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
         $sqlite = $this->getDB();
         if(!$sqlite) return array();
 
-        $sql  = "SELECT * FROM sources";
+        $sql = "SELECT * FROM sources";
         if($enabledonly) $sql .= ' WHERE enabled = 1';
-        $res  = $sqlite->query($sql);
+        $res = $sqlite->query($sql);
         $data = $sqlite->res2arr($res);
         $sqlite->res_close($res);
         return $data;
     }
 
+    /**
+     * Returns an URL to a favicon for the given URL
+     *
+     * @param string $url
+     * @return string
+     */
+    public function getIco($url) {
+        $urlparts = parse_url($url);
+        return 'https://www.google.com/s2/u/0/favicons?domain=' . $urlparts['host'];
+    }
 
+    /**
+     * Creates a HTML representation of a single RSS item
+     *
+     * @param array $item A single entry as returned from the database
+     * @return string
+     */
     public function formatItem($item) {
+        $ico = $this->getIco($item['url']);
 
-        $urlparts = parse_url($item['url']);
-        $ico = 'https://www.google.com/s2/u/0/favicons?domain='.$urlparts['host'];
-
-        $html  = '<div class="plugin-linkblog">';
-        $html .= '<a href="'.$item['url'].'">';
-        $html .= '<img src="'.$ico.'" width="16" height="16" alt="" />';
+        $html = '<div class="plugin-linkblog">';
+        $html .= '<a href="' . $item['url'] . '">';
+        $html .= '<img src="' . $ico . '" width="16" height="16" alt="" />';
         $html .= hsc($item['title']);
         $html .= '</a>';
-        $html .= ' <span>'.date('Y-m-d', $item['published']).'</span>';
-        if($item['usecontent']){
+        $html .= ' <span>' . date('Y-m-d', $item['published']) . '</span>';
+        if($item['usecontent']) {
             $content = trim(strip_tags($item['description']));
             if($content) {
-                $html .= '<blockquote>'.hsc($content).'</blockquote>';
+                $html .= '<blockquote>' . hsc($content) . '</blockquote>';
             }
         }
         $html .= '</div>';
@@ -81,28 +95,26 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
     /**
      * Get a list of feed items, optionally filtered
      *
-     * @param int $max    number of items maximum
+     * @param int $max number of items maximum
      * @param int $newerthan newest allowed item
      * @param int $olderthan oldest allowed item
      * @return array
      */
-    public function getItems($max=20, $newerthan=0, $olderthan=0) {
+    public function getItems($max = 20, $newerthan = 0, $olderthan = 0) {
         $sqlite = $this->getDB();
         if(!$sqlite) return array();
 
-
         $values = array();
         $where = '';
-        if($newerthan){
+        if($newerthan) {
             $where .= ' AND published >= ?';
             $values[] = $newerthan;
         }
-        if($olderthan){
+        if($olderthan) {
             $where .= ' AND published < ?';
             $values[] = $olderthan;
         }
         $values[] = $max;
-
 
         $sql = "SELECT title, url, description, content, published, name as source, usecontent
                   FROM items A, sources B
@@ -139,7 +151,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
 
         if($id) {
             array_unshift($values, $id);
-            $sql    = "REPLACE INTO sources (id, name, feed, usereadability, usecontent, enabled, filter, repl, with) VALUES (?,?,?,?,?,?,?,?,?)";
+            $sql = "REPLACE INTO sources (id, name, feed, usereadability, usecontent, enabled, filter, repl, with) VALUES (?,?,?,?,?,?,?,?,?)";
         } else {
             $sql = "INSERT INTO sources (name, feed, usereadability, usecontent, enabled, filter, repl, with) VALUES (?,?,?,?,?,?,?,?)";
         }
@@ -161,35 +173,33 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
 
         // check if this should be filtered out
         $title = $item->get_title();
-        if($feed['filter'] && !preg_match('/'.$feed['filter'].'/', $title)) return false;
-
+        if($feed['filter'] && !preg_match('/' . $feed['filter'] . '/', $title)) return false;
 
         $url = $item->get_permalink();
 
         // check if we have this article already
-        $sql   = "SELECT id FROM items WHERE id = ?";
-        $res   = $sqlite->query($sql, md5($url));
+        $sql = "SELECT id FROM items WHERE id = ?";
+        $res = $sqlite->query($sql, md5($url));
         $found = (bool) $sqlite->res2single($res);
         $sqlite->res_close($res);
         if($found) return false;
 
-        $http    = new DokuHTTPClient();
+        $http = new DokuHTTPClient();
         // unshorten the URL for storage
         if($this->getConf('unshortenapikey')) {
-            $fullurl = $http->get('http://api.unshorten.it?shortURL='.rawurlencode($url).'&apiKey='.$this->getConf('unshortenapikey'));
+            $fullurl = $http->get('http://api.unshorten.it?shortURL=' . rawurlencode($url) . '&apiKey=' . $this->getConf('unshortenapikey'));
             if(!$fullurl) $fullurl = $url;
-            if(strtolower(substr($fullurl,0,4)) != 'http') $fullurl = $url;
-        }else {
+            if(strtolower(substr($fullurl, 0, 4)) != 'http') $fullurl = $url;
+        } else {
             $fullurl = $url;
         }
 
         // adjust title
-        if($feed['repl']) $title = preg_replace('/'.$feed['repl'].'/', $feed['with'], $title);
+        if($feed['repl']) $title = preg_replace('/' . $feed['repl'] . '/', $feed['with'], $title);
 
-        $content = '';
         if($feed['usereadbility']) {
             // fetch the article's content through readabilities filter
-            $readability = 'http://www.readability.com/m?url='.rawurldecode($fullurl);
+            $readability = 'http://www.readability.com/m?url=' . rawurldecode($fullurl);
 
             $content = $http->get($readability);
             if(preg_match('/(<section id="rdb-article-content" dir="ltr">)(.*?)(<\/section)/s', $content, $m)) {
@@ -201,12 +211,12 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
             if($feed['usecontent']) {
                 $prefix = $item->get_content();
                 if($content) {
-                    $prefix = '<blockquote>'.$prefix.'<hr></blockquote>';
+                    $prefix = '<blockquote>' . $prefix . '<hr></blockquote>';
                 }
 
-                $content = $prefix.$content;
+                $content = $prefix . $content;
             }
-        }else {
+        } else {
             $content = $item->get_content();
         }
 
