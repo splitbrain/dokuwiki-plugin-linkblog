@@ -8,7 +8,7 @@ $hlp = plugin_load('helper', 'linkblog');
 
 $items = $hlp->getItems(5);
 
-$feed = new DokuWikiFeedCreator();
+$feed = new UniversalFeedCreator();
 $feed->title = $hlp->getConf('feedtitle');
 foreach($items as $item) {
     $fitem = new FeedItem();
@@ -21,4 +21,4 @@ foreach($items as $item) {
 }
 
 header('Content-Type: text/xml');
-echo $feed->createFeed('RSS2.0', 'utf-8');
+echo $feed->createFeed('RSS2.0');
