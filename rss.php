@@ -16,6 +16,7 @@ foreach($items as $item) {
     $fitem->title = $item['title'];
     $fitem->date = $item['published'];
     $fitem->description = $item['content'];
+    $fitem->guid = $item['url'];
 
     $feed->addItem($fitem);
 }
