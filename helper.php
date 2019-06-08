@@ -7,9 +7,14 @@
  */
 
 // must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
+use andreskrey\Readability\ParseException;
+use andreskrey\Readability\Configuration;
+use andreskrey\Readability\Readability;
 
-class helper_plugin_linkblog extends DokuWiki_Plugin {
+if (!defined('DOKU_INC')) die();
+
+class helper_plugin_linkblog extends DokuWiki_Plugin
+{
 
     /** @var helper_plugin_sqlite $sqlite */
     protected $sqlite = null;
@@ -19,17 +24,18 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      *
      * @return helper_plugin_sqlite|null
      */
-    protected function getDB() {
-        if(!is_null($this->sqlite)) return $this->sqlite;
+    protected function getDB()
+    {
+        if (!is_null($this->sqlite)) return $this->sqlite;
 
         /** @var helper_plugin_sqlite $sqlite */
         $sqlite = plugin_load('helper', 'sqlite');
-        if(!$sqlite) {
+        if (!$sqlite) {
             msg('The linkblog plugin requires the sqlite plugin', -1);
             return null;
         }
 
-        if(!$sqlite->init('linkblog', __DIR__ . '/db')) {
+        if (!$sqlite->init('linkblog', __DIR__ . '/db')) {
             return null;
         }
 
@@ -43,12 +49,13 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      * @param bool $enabledonly
      * @return array
      */
-    public function loadFeeds($enabledonly = true) {
+    public function loadFeeds($enabledonly = true)
+    {
         $sqlite = $this->getDB();
-        if(!$sqlite) return array();
+        if (!$sqlite) return array();
 
         $sql = "SELECT * FROM sources";
-        if($enabledonly) $sql .= ' WHERE enabled = 1';
+        if ($enabledonly) $sql .= ' WHERE enabled = 1';
         $res = $sqlite->query($sql);
         $data = $sqlite->res2arr($res);
         $sqlite->res_close($res);
@@ -61,7 +68,8 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      * @param string $url
      * @return string
      */
-    public function getIco($url) {
+    public function getIco($url)
+    {
         $urlparts = parse_url($url);
         return 'https://www.google.com/s2/u/0/favicons?domain=' . $urlparts['host'];
     }
@@ -72,7 +80,8 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      * @param array $item A single entry as returned from the database
      * @return string
      */
-    public function formatItem($item) {
+    public function formatItem($item)
+    {
         $ico = $this->getIco($item['url']);
 
         $html = '<div class="plugin-linkblog">';
@@ -81,9 +90,9 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
         $html .= hsc($item['title']);
         $html .= '</a>';
         $html .= ' <span>' . date('Y-m-d', $item['published']) . '</span>';
-        if($item['usecontent']) {
+        if ($item['usecontent']) {
             $content = trim(strip_tags($item['description']));
-            if($content) {
+            if ($content) {
                 $html .= '<blockquote>' . hsc($content) . '</blockquote>';
             }
         }
@@ -100,17 +109,18 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      * @param int $olderthan oldest allowed item
      * @return array
      */
-    public function getItems($max = 20, $newerthan = 0, $olderthan = 0) {
+    public function getItems($max = 20, $newerthan = 0, $olderthan = 0)
+    {
         $sqlite = $this->getDB();
-        if(!$sqlite) return array();
+        if (!$sqlite) return array();
 
         $values = array();
         $where = '';
-        if($newerthan) {
+        if ($newerthan) {
             $where .= ' AND published >= ?';
             $values[] = $newerthan;
         }
-        if($olderthan) {
+        if ($olderthan) {
             $where .= ' AND published < ?';
             $values[] = $olderthan;
         }
@@ -135,21 +145,22 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      * @param array $feed feed data
      * @return bool
      */
-    public function editFeed($id, $feed) {
+    public function editFeed($id, $feed)
+    {
         $sqlite = $this->getDB();
-        if(!$sqlite) return false;
+        if (!$sqlite) return false;
 
         $values = array();
         $values[] = $feed['name'];
         $values[] = $feed['feed'];
-        $values[] = (int) $feed['usereadability'];
-        $values[] = (int) $feed['usecontent'];
-        $values[] = (int) $feed['enabled'];
+        $values[] = (int)$feed['usereadability'];
+        $values[] = (int)$feed['usecontent'];
+        $values[] = (int)$feed['enabled'];
         $values[] = $feed['filter'];
         $values[] = $feed['repl'];
         $values[] = $feed['with'];
 
-        if($id) {
+        if ($id) {
             array_unshift($values, $id);
             $sql = "REPLACE INTO sources (id, name, feed, usereadability, usecontent, enabled, filter, repl, with) VALUES (?,?,?,?,?,?,?,?,?)";
         } else {
@@ -167,50 +178,44 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
      * @param array $feed The feed options
      * @return bool
      */
-    public function storeArticle(SimplePie_Item $item, $feed) {
+    public function storeArticle(SimplePie_Item $item, $feed)
+    {
         $sqlite = $this->getDB();
-        if(!$sqlite) return false;
+        if (!$sqlite) return false;
 
         // check if this should be filtered out
         $title = $item->get_title();
-        if($feed['filter'] && !preg_match('/' . $feed['filter'] . '/', $title)) return false;
+        if ($feed['filter'] && !preg_match('/' . $feed['filter'] . '/', $title)) return false;
 
         $url = $item->get_permalink();
 
         // check if we have this article already
         $sql = "SELECT id FROM items WHERE id = ?";
         $res = $sqlite->query($sql, md5($url));
-        $found = (bool) $sqlite->res2single($res);
+        $found = (bool)$sqlite->res2single($res);
         $sqlite->res_close($res);
-        if($found) return false;
+        if ($found) return false;
 
         $http = new DokuHTTPClient();
         // unshorten the URL for storage
-        if($this->getConf('unshortenapikey')) {
+        if ($this->getConf('unshortenapikey')) {
             $fullurl = $http->get('http://api.unshorten.it?shortURL=' . rawurlencode($url) . '&apiKey=' . $this->getConf('unshortenapikey'));
-            if(!$fullurl) $fullurl = $url;
-            if(strtolower(substr($fullurl, 0, 4)) != 'http') $fullurl = $url;
+            if (!$fullurl) $fullurl = $url;
+            if (strtolower(substr($fullurl, 0, 4)) != 'http') $fullurl = $url;
         } else {
             $fullurl = $url;
         }
 
         // adjust title
-        if($feed['repl']) $title = preg_replace('/' . $feed['repl'] . '/', $feed['with'], $title);
+        if ($feed['repl']) $title = preg_replace('/' . $feed['repl'] . '/', $feed['with'], $title);
 
-        if($feed['usereadbility']) {
+        if ($feed['usereadability']) {
             // fetch the article's content through readabilities filter
-            $readability = 'http://www.readability.com/m?url=' . rawurldecode($fullurl);
+            $content = $this->makeReadable($url);
 
-            $content = $http->get($readability);
-            if(preg_match('/(<section id="rdb-article-content" dir="ltr">)(.*?)(<\/section)/s', $content, $m)) {
-                $content = $m[2];
-            } else {
-                $content = '';
-            }
-
-            if($feed['usecontent']) {
+            if ($feed['usecontent']) {
                 $prefix = $item->get_content();
-                if($content) {
+                if ($content) {
                     $prefix = '<blockquote>' . $prefix . '<hr></blockquote>';
                 }
 
@@ -233,10 +238,31 @@ class helper_plugin_linkblog extends DokuWiki_Plugin {
             $item->get_content(),
             $content
         );
-
         return true;
     }
 
+    /**
+     * Return a readable version of the given URL, empty string on failure
+     *
+     * @param string $url
+     * @return string
+     */
+    protected function makeReadable($url)
+    {
+        require_once __DIR__ . '/vendor/autoload.php';
+
+        $http = new DokuHTTPClient();
+        $html = $http->get($url);
+        if ($html === false) return '';
+
+        $readability = new Readability(new Configuration());
+        try {
+            $readability->parse($html);
+            return $readability->getContent();
+        } catch (ParseException $e) {
+            return '';
+        }
+    }
 }
 
 // vim:ts=4:sw=4:et:
