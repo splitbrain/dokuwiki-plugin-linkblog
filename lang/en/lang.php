@@ -6,7 +6,7 @@
  */
 
 // menu entry for admin plugins
-// $lang['menu'] = 'Your menu entry';
+$lang['menu'] = 'Linkblog Setup';
 
 // custom language strings for the plugin
 // $lang['fixme'] = 'FIXME';

@@ -1,34 +1,23 @@
-#!/usr/bin/php
 <?php
 
-use splitbrain\phpcli\CLI;
+use dokuwiki\Extension\CLIPlugin;
 use splitbrain\phpcli\Options;
 
-if (!defined('DOKU_INC')) define('DOKU_INC', realpath(__DIR__ . '/../../../') . '/');
-define('NOSESSION', 1);
-require_once(DOKU_INC . 'inc/init.php');
-
-class LinkblogCron extends CLI
+/**
+ * DokuWiki Plugin linkblog (CLI Component)
+ *
+ * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
+ * @author  Andreas Gohr <andi@splitbrain.org>
+ */
+class cli_plugin_linkblog extends CLIPlugin
 {
-    /**
-     * Register options and arguments on the given $options object
-     *
-     * @param Options $options
-     * @return void
-     */
+    /** @inheritDoc */
     protected function setup(Options $options)
     {
         $options->setHelp('Update all feeds');
     }
 
-    /**
-     * Your main program
-     *
-     * Arguments and options have been parsed when this is run
-     *
-     * @param Options $options
-     * @return void
-     */
+    /** @inheritDoc */
     protected function main(Options $options)
     {
         $this->info('starting feed fetching');
@@ -58,6 +47,3 @@ class LinkblogCron extends CLI
         }
     }
 }
-
-$cron = new LinkblogCron();
-$cron->run();
