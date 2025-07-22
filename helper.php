@@ -7,9 +7,9 @@
  */
 
 // must be run within Dokuwiki
-use andreskrey\Readability\ParseException;
-use andreskrey\Readability\Configuration;
-use andreskrey\Readability\Readability;
+use fivefilters\Readability\ParseException;
+use fivefilters\Readability\Configuration;
+use fivefilters\Readability\Readability;
 
 if (!defined('DOKU_INC')) die();
 

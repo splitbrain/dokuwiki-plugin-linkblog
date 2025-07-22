@@ -1,5 +1,5 @@
 {
     "require": {
-        "andreskrey/readability.php": "^2.0"
+        "fivefilters/readability.php": ">=3.0"
     }
 }
