@@ -1,27 +1,27 @@
 <?php
+
+use dokuwiki\Extension\AdminPlugin;
+
 /**
  * DokuWiki Plugin linkblog (Admin Component)
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Andreas Gohr <andi@splitbrain.org>
  */
-
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
-
-class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
-
+class admin_plugin_linkblog extends AdminPlugin
+{
     /**
      * @inheritdoc
      */
-    function handle() {
+    public function handle()
+    {
         global $INPUT;
         /** @var helper_plugin_linkblog $hlp */
         $hlp = plugin_load('helper', 'linkblog');
 
         $feeds = $INPUT->arr('feed');
-        foreach($feeds as $fid => $feed) {
-            if($feed['name']) {
+        foreach ($feeds as $fid => $feed) {
+            if ($feed['name']) {
                 $hlp->editFeed(
                     $fid,
                     $feed
@@ -33,12 +33,13 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
     /**
      * @inheritdoc
      */
-    function html() {
+    public function html()
+    {
         /** @var helper_plugin_linkblog $hlp */
         $hlp = plugin_load('helper', 'linkblog');
 
         $feeds = $hlp->loadFeeds(false);
-        $feeds[] = array(
+        $feeds[] = [
             'id' => 0,
             'name' => '',
             'feed' => '',
@@ -47,10 +48,10 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
             'enabled' => 1,
             'filter' => '',
             'repl' => '',
-            'with' => '',
-        );
+            'with' => ''
+        ];
 
-        $form = new Doku_Form(array());
+        $form = new Doku_Form([]);
         $form->addHidden('page', 'linkblog');
         $form->addElement('<table class="inline">');
 
@@ -60,7 +61,7 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
         $form->addElement('<th></th>');
         $form->addElement('</tr>');
 
-        foreach($feeds as $feed) {
+        foreach ($feeds as $feed) {
             $form->addElement('<tr>');
 
             $form->addElement('<td>');
@@ -72,25 +73,31 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
             $form->addElement('</td>');
 
             $form->addElement('<td>');
-            if($feed['usereadability']) {
-                $check = array('checked' => 'checked');
+            if ($feed['usereadability']) {
+                $check = ['checked' => 'checked'];
             } else {
-                $check = array();
+                $check = [];
             }
-            $form->addElement(form_makeCheckboxField('feed[' . $feed['id'] . '][usereadability]', 1, 'Readability', '', '', $check));
+            $form->addElement(
+                form_makeCheckboxField('feed[' . $feed['id'] . '][usereadability]', 1, 'Readability', '', '', $check)
+            );
 
-            if($feed['usecontent']) {
-                $check = array('checked' => 'checked');
+            if ($feed['usecontent']) {
+                $check = ['checked' => 'checked'];
             } else {
-                $check = array();
+                $check = [];
             }
-            $form->addElement(form_makeCheckboxField('feed[' . $feed['id'] . '][usecontent]', 1, 'Content', '', '', $check));
-            if($feed['enabled']) {
-                $check = array('checked' => 'checked');
+            $form->addElement(
+                form_makeCheckboxField('feed[' . $feed['id'] . '][usecontent]', 1, 'Content', '', '', $check)
+            );
+            if ($feed['enabled']) {
+                $check = ['checked' => 'checked'];
             } else {
-                $check = array();
+                $check = [];
             }
-            $form->addElement(form_makeCheckboxField('feed[' . $feed['id'] . '][enabled]', 1, 'Enabled', '', '', $check));
+            $form->addElement(
+                form_makeCheckboxField('feed[' . $feed['id'] . '][enabled]', 1, 'Enabled', '', '', $check)
+            );
 
             $form->addElement('<br />');
             $form->addElement(form_makeField('text', 'feed[' . $feed['id'] . '][filter]', $feed['filter'], 'Filter'));
@@ -115,14 +122,14 @@ class admin_plugin_linkblog extends DokuWiki_Admin_Plugin {
     /**
      * Print the last couple of entries
      */
-    protected function lastentries() {
+    protected function lastentries()
+    {
         /** @var helper_plugin_linkblog $hlp */
         $hlp = plugin_load('helper', 'linkblog');
 
         $items = $hlp->getItems($this->getConf('limit'));
-        foreach($items as $item) {
+        foreach ($items as $item) {
             echo $hlp->formatItem($item);
         }
-
     }
 }

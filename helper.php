@@ -1,23 +1,21 @@
 <?php
+
+use dokuwiki\Extension\Plugin;
+use dokuwiki\HTTP\DokuHTTPClient;
+use fivefilters\Readability\ParseException;
+use fivefilters\Readability\Configuration;
+use fivefilters\Readability\Readability;
+
 /**
  * DokuWiki Plugin linkblog (Helper Component)
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Andreas Gohr <andi@splitbrain.org>
  */
-
-// must be run within Dokuwiki
-use fivefilters\Readability\ParseException;
-use fivefilters\Readability\Configuration;
-use fivefilters\Readability\Readability;
-
-if (!defined('DOKU_INC')) die();
-
-class helper_plugin_linkblog extends DokuWiki_Plugin
+class helper_plugin_linkblog extends Plugin
 {
-
     /** @var helper_plugin_sqlite $sqlite */
-    protected $sqlite = null;
+    protected $sqlite;
 
     /**
      * Access the SQLite plugin
@@ -52,7 +50,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin
     public function loadFeeds($enabledonly = true)
     {
         $sqlite = $this->getDB();
-        if (!$sqlite) return array();
+        if (!$sqlite) return [];
 
         $sql = "SELECT * FROM sources";
         if ($enabledonly) $sql .= ' WHERE enabled = 1';
@@ -112,9 +110,9 @@ class helper_plugin_linkblog extends DokuWiki_Plugin
     public function getItems($max = 20, $newerthan = 0, $olderthan = 0)
     {
         $sqlite = $this->getDB();
-        if (!$sqlite) return array();
+        if (!$sqlite) return [];
 
-        $values = array();
+        $values = [];
         $where = '';
         if ($newerthan) {
             $where .= ' AND published >= ?';
@@ -150,7 +148,7 @@ class helper_plugin_linkblog extends DokuWiki_Plugin
         $sqlite = $this->getDB();
         if (!$sqlite) return false;
 
-        $values = array();
+        $values = [];
         $values[] = $feed['name'];
         $values[] = $feed['feed'];
         $values[] = (int)$feed['usereadability'];
@@ -162,9 +160,13 @@ class helper_plugin_linkblog extends DokuWiki_Plugin
 
         if ($id) {
             array_unshift($values, $id);
-            $sql = "REPLACE INTO sources (id, name, feed, usereadability, usecontent, enabled, filter, repl, with) VALUES (?,?,?,?,?,?,?,?,?)";
+            $sql = "REPLACE INTO sources
+                                 (id, name, feed, usereadability, usecontent, enabled, filter, repl, with)
+                          VALUES (?,?,?,?,?,?,?,?,?)";
         } else {
-            $sql = "INSERT INTO sources (name, feed, usereadability, usecontent, enabled, filter, repl, with) VALUES (?,?,?,?,?,?,?,?)";
+            $sql = "INSERT INTO sources
+                                (name, feed, usereadability, usecontent, enabled, filter, repl, with)
+                         VALUES (?,?,?,?,?,?,?,?)";
         }
 
         $sqlite->query($sql, $values);
@@ -199,7 +201,10 @@ class helper_plugin_linkblog extends DokuWiki_Plugin
         $http = new DokuHTTPClient();
         // unshorten the URL for storage
         if ($this->getConf('unshortenapikey')) {
-            $fullurl = $http->get('http://api.unshorten.it?shortURL=' . rawurlencode($url) . '&apiKey=' . $this->getConf('unshortenapikey'));
+            $fullurl = $http->get(
+                'http://api.unshorten.it?shortURL=' . rawurlencode($url) .
+                '&apiKey=' . $this->getConf('unshortenapikey')
+            );
             if (!$fullurl) $fullurl = $url;
             if (strtolower(substr($fullurl, 0, 4)) != 'http') $fullurl = $url;
         } else {
@@ -264,5 +269,3 @@ class helper_plugin_linkblog extends DokuWiki_Plugin
         }
     }
 }
-
-// vim:ts=4:sw=4:et:

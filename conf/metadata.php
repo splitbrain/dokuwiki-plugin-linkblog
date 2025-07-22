@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Options for the linkblog plugin
  *
@@ -8,4 +9,3 @@
 $meta['unshortenapikey'] = array('string');
 $meta['feedtitle'] = array('string');
 $meta['limit'] = array('numeric');
-

@@ -1,5 +1,6 @@
 <?php
-if(!defined('DOKU_INC')) define('DOKU_INC', realpath(dirname(__FILE__) . '/../../../') . '/');
+
+if (!defined('DOKU_INC')) define('DOKU_INC', realpath(__DIR__ . '/../../../') . '/');
 define('NOSESSION', 1);
 require_once(DOKU_INC . 'inc/init.php');
 
@@ -10,7 +11,7 @@ $items = $hlp->getItems(5);
 
 $feed = new UniversalFeedCreator();
 $feed->title = $hlp->getConf('feedtitle');
-foreach($items as $item) {
+foreach ($items as $item) {
     $fitem = new FeedItem();
     $fitem->link = $item['url'];
     $fitem->title = $item['title'];
