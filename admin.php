@@ -1,5 +1,6 @@
 <?php
 
+use dokuwiki\Form\Form;
 use dokuwiki\Extension\AdminPlugin;
 
 /**
@@ -51,70 +52,56 @@ class admin_plugin_linkblog extends AdminPlugin
             'with' => ''
         ];
 
-        $form = new Doku_Form([]);
-        $form->addHidden('page', 'linkblog');
-        $form->addElement('<table class="inline">');
+        $form = new Form();
+        $form->setHiddenField('page', 'linkblog');
+        $form->addHTML('<table class="inline">');
 
-        $form->addElement('<tr>');
-        $form->addElement('<th>Name</th>');
-        $form->addElement('<th>Feed-URL</th>');
-        $form->addElement('<th></th>');
-        $form->addElement('</tr>');
+        $form->addHTML('<tr>');
+        $form->addHTML('<th>Name</th>');
+        $form->addHTML('<th>Feed-URL</th>');
+        $form->addHTML('<th></th>');
+        $form->addHTML('</tr>');
 
         foreach ($feeds as $feed) {
-            $form->addElement('<tr>');
+            $form->addTagOpen('tr');
 
-            $form->addElement('<td>');
-            $form->addElement(form_makeTextField('feed[' . $feed['id'] . '][name]', $feed['name'], ''));
-            $form->addElement('</td>');
+            $form->addTagOpen('td');
+            $form->addTextInput('feed[' . $feed['id'] . '][name]')->useInput(false)->val($feed['name']);
+            $form->addTagClose('td');
 
-            $form->addElement('<td>');
-            $form->addElement(form_makeTextField('feed[' . $feed['id'] . '][feed]', $feed['feed'], ''));
-            $form->addElement('</td>');
+            $form->addTagOpen('td');
+            $form->addTextInput('feed[' . $feed['id'] . '][feed]')->useInput(false)->val($feed['feed']);
+            $form->addTagClose('td');
 
-            $form->addElement('<td>');
-            if ($feed['usereadability']) {
-                $check = ['checked' => 'checked'];
-            } else {
-                $check = [];
-            }
-            $form->addElement(
-                form_makeCheckboxField('feed[' . $feed['id'] . '][usereadability]', 1, 'Readability', '', '', $check)
-            );
+            $form->addTagOpen('td');
 
-            if ($feed['usecontent']) {
-                $check = ['checked' => 'checked'];
-            } else {
-                $check = [];
-            }
-            $form->addElement(
-                form_makeCheckboxField('feed[' . $feed['id'] . '][usecontent]', 1, 'Content', '', '', $check)
-            );
-            if ($feed['enabled']) {
-                $check = ['checked' => 'checked'];
-            } else {
-                $check = [];
-            }
-            $form->addElement(
-                form_makeCheckboxField('feed[' . $feed['id'] . '][enabled]', 1, 'Enabled', '', '', $check)
-            );
+            $cb = $form->addCheckbox('feed[' . $feed['id'] . '][usereadability]', 'Readability')->useInput(false);
+            if ($feed['usereadability']) $cb->attr('checked', 'checked');
 
-            $form->addElement('<br />');
-            $form->addElement(form_makeField('text', 'feed[' . $feed['id'] . '][filter]', $feed['filter'], 'Filter'));
+            $cb = $form->addCheckbox('feed[' . $feed['id'] . '][usecontent]', 'Content')->useInput(false);
+            if ($feed['usecontent']) $cb->attr('checked', 'checked');
 
-            $form->addElement('<br />');
-            $form->addElement(form_makeField('text', 'feed[' . $feed['id'] . '][repl]', $feed['repl'], 'Replace'));
-            $form->addElement('<br />');
-            $form->addElement(form_makeField('text', 'feed[' . $feed['id'] . '][with]', $feed['with'], 'with'));
+            $cb = $form->addCheckbox('feed[' . $feed['id'] . '][enabled]', 'Enabled')->useInput(false);
+            if ($feed['enabled']) $cb->attr('checked', 'checked');
 
-            $form->addElement('</td>');
+            $form->addHTML('<br />');
+            $form->addTextInput('feed[' . $feed['id'] . '][filter]', 'Filter')->useInput(false)->val($feed['filter']);
 
-            $form->addElement('</tr>');
+            $form->addHTML('<br />');
+            $form->addTextInput('feed[' . $feed['id'] . '][repl]', 'Replace')->useInput(false)->val($feed['repl']);
+
+            $form->addHTML('<br />');
+            $form->addTextInput('feed[' . $feed['id'] . '][with]', 'with')->useInput(false)->val($feed['with']);
+
+            $form->addTagClose('td');
+
+            $form->addTagClose('tr');
         }
 
-        $form->addElement('</table>');
-        $form->addElement(form_makeButton('submit', 'admin', 'Save'));
-        $form->printForm();
+        $form->addTagClose('table');
+        $form->addButton('do[admin]', 'Save')->attr('type', 'submit');
+
+        echo $form->toHTML();
 
         $this->lastentries();
     }
